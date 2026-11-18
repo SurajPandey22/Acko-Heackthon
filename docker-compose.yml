@@ -1,0 +1,39 @@
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-contract_guard}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-contract_guard}
+      POSTGRES_DB: ${POSTGRES_DB:-contract_guard}
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER:-contract_guard} -d ${POSTGRES_DB:-contract_guard}",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  app:
+    build: .
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER:-contract_guard}:${POSTGRES_PASSWORD:-contract_guard}@db:5432/${POSTGRES_DB:-contract_guard}
+      SESSION_SECRET: ${SESSION_SECRET:-change-me-in-.env}
+      WEBHOOK_URL: ${WEBHOOK_URL:-http://localhost:9099/webhook}
+      DEMO_PASSWORD: ${DEMO_PASSWORD:-}
+      PORT: 3000
+    ports:
+      - "3000:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # TODO: add the starter-kit's webhook receiver once ./starter-kit is present
+  # (follow its README for the service definition and port). Until then
+  # WEBHOOK_URL points at a placeholder and webhook alerts are not delivered.
+
+volumes:
+  pgdata:

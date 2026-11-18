@@ -1,0 +1,65 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Quote API",
+    "version": "1.0.0",
+    "description": "Returns insurance quotes."
+  },
+  "paths": {
+    "/quote": {
+      "get": {
+        "summary": "Get a quote",
+        "operationId": "getQuote",
+        "parameters": [
+          {
+            "name": "market",
+            "in": "query",
+            "required": false,
+            "description": "Which product line to quote for.",
+            "schema": {
+              "type": "string",
+              "enum": ["motor", "health"]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A quote",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/QuoteResponse" }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "QuoteResponse": {
+        "type": "object",
+        "required": ["quoteId", "premium"],
+        "properties": {
+          "quoteId": { "type": "string" },
+          "premium": { "type": "number" }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "required": ["message"],
+        "properties": {
+          "message": { "type": "string" }
+        }
+      }
+    }
+  }
+}

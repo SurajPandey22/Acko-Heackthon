@@ -22,6 +22,8 @@ ENV NODE_ENV=production
 COPY --from=prod-deps /app/node_modules ./node_modules
 COPY package.json ./
 COPY --from=build /app/dist ./dist
+# Applied automatically by src/server.ts at startup
+COPY --from=build /app/src/db/migrations ./src/db/migrations
 EXPOSE 3000
 USER node
 CMD ["node", "dist/server.js"]

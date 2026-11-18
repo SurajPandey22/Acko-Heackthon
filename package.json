@@ -17,6 +17,7 @@
     "test:integration": "vitest run tests/integration",
     "test:acceptance": "vitest run tests/acceptance",
     "lint": "biome check .",
+    "db:generate": "drizzle-kit generate",
     "seed": "tsx src/db/seed.ts"
   },
   "dependencies": {
@@ -38,6 +39,7 @@
     "@types/node": "^26.6.6",
     "@types/pg": "^8.23.1",
     "@types/supertest": "^7.2.1",
+    "drizzle-kit": "^0.31.11",
     "supertest": "^7.3.2",
     "tsx": "^4.23.15",
     "typescript": "^7.0.2",

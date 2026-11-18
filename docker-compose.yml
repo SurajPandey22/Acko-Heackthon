@@ -2,15 +2,14 @@ services:
   db:
     image: postgres:16
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-contract_guard}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-contract_guard}
+      POSTGRES_USER: ${POSTGRES_USER:-guard}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-guard}
       POSTGRES_DB: ${POSTGRES_DB:-contract_guard}
+    # Exposed so the app can also run locally against "localhost:5432".
+    ports:
+      - "5432:5432"
     healthcheck:
-      test:
-        [
-          "CMD-SHELL",
-          "pg_isready -U ${POSTGRES_USER:-contract_guard} -d ${POSTGRES_DB:-contract_guard}",
-        ]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-guard} -d ${POSTGRES_DB:-contract_guard}"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -20,7 +19,8 @@ services:
   app:
     build: .
     environment:
-      DATABASE_URL: postgres://${POSTGRES_USER:-contract_guard}:${POSTGRES_PASSWORD:-contract_guard}@db:5432/${POSTGRES_DB:-contract_guard}
+      # Host is "db" here, even though local runs use "localhost".
+      DATABASE_URL: postgres://${POSTGRES_USER:-guard}:${POSTGRES_PASSWORD:-guard}@db:5432/${POSTGRES_DB:-contract_guard}
       SESSION_SECRET: ${SESSION_SECRET:-change-me-in-.env}
       WEBHOOK_URL: ${WEBHOOK_URL:-http://localhost:9099/webhook}
       DEMO_PASSWORD: ${DEMO_PASSWORD:-}

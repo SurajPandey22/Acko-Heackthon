@@ -7,8 +7,9 @@ import { join } from "node:path"
 import { fileURLToPath, pathToFileURL } from "node:url"
 import type { AppDatabase } from "../src/db/types.js"
 import { consumerExists, insertConsumer } from "../src/modules/consumers/repository.js"
+import { publishVersion } from "../src/modules/publish/service.js"
 import { findServiceByName, insertService } from "../src/modules/services/repository.js"
-import { findSpecVersion, markSpecVersionPublished } from "../src/modules/specs/repository.js"
+import { findSpecVersion } from "../src/modules/specs/repository.js"
 import { uploadSpecVersion } from "../src/modules/specs/service.js"
 
 interface ServiceDefinition {
@@ -85,13 +86,13 @@ export async function seed(db: AppDatabase): Promise<SeedSummary> {
     const existing = await findSpecVersion(db, service.id, "1.0.0")
     if (!existing) {
       const text = readFileSync(join(fixturesDir, definition.specFile), "utf8")
-      const created = await uploadSpecVersion(db, definition.name, {
+      await uploadSpecVersion(db, definition.name, {
         text,
         filename: definition.specFile,
       })
-      // v1 has no predecessor, so there is nothing to block on; the publish
-      // gate module will take over this step when it exists.
-      await markSpecVersionPublished(db, created.id)
+      // v1 has no predecessor, so the publish gate lets it through and
+      // records the attempt like any other publish.
+      await publishVersion(db, definition.name, "1.0.0", "seed")
       summary.versionsUploaded += 1
     }
   }

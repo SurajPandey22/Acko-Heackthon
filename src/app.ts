@@ -2,6 +2,7 @@ import express, { type Express, type NextFunction, type Request, type Response }
 import type { AppDatabase } from "./db/types.js"
 import { consumersRouter } from "./modules/consumers/routes.js"
 import { HttpError } from "./modules/errors.js"
+import { publishRouter } from "./modules/publish/routes.js"
 import { servicesRouter } from "./modules/services/routes.js"
 import { specsRouter } from "./modules/specs/routes.js"
 import { MAX_UPLOAD_BYTES } from "./modules/specs/upload.js"
@@ -59,6 +60,7 @@ export function createApp({ db }: CreateAppOptions): Express {
 
   app.use("/api/services", servicesRouter(db))
   app.use("/api/services", specsRouter(db))
+  app.use("/api/services", publishRouter(db))
   app.use("/api/consumers", consumersRouter(db))
 
   app.use(notFoundHandler)

@@ -10,6 +10,12 @@ export interface SpecVersionRow {
   createdAt: Date
 }
 
+/** Full row including the stored spec documents (used by the publish pipeline). */
+export interface SpecVersionDetail extends SpecVersionRow {
+  rawSpec: string
+  spec: Record<string, unknown>
+}
+
 export async function insertSpecVersion(
   db: AppDatabase,
   input: { serviceId: number; version: string; rawSpec: string; spec: Record<string, unknown> },
@@ -28,15 +34,9 @@ export async function findSpecVersion(
   db: AppDatabase,
   serviceId: number,
   version: string,
-): Promise<SpecVersionRow | null> {
+): Promise<SpecVersionDetail | null> {
   const [row] = await db
-    .select({
-      id: specVersions.id,
-      serviceId: specVersions.serviceId,
-      version: specVersions.version,
-      status: specVersions.status,
-      createdAt: specVersions.createdAt,
-    })
+    .select()
     .from(specVersions)
     .where(and(eq(specVersions.serviceId, serviceId), eq(specVersions.version, version)))
     .limit(1)
@@ -58,9 +58,4 @@ export async function listSpecVersions(
     .from(specVersions)
     .where(eq(specVersions.serviceId, serviceId))
     .orderBy(specVersions.id)
-}
-
-/** Mark a stored version published. Used by the seed; the publish gate module will replace this. */
-export async function markSpecVersionPublished(db: AppDatabase, id: number): Promise<void> {
-  await db.update(specVersions).set({ status: "published" }).where(eq(specVersions.id, id))
 }

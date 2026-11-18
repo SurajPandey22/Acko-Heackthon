@@ -1,11 +1,13 @@
-// Seed demo data: services, published v1 specs (from tests/fixtures) and
-// consumer registrations. Idempotent - a second run creates nothing.
+// Seed demo data: users, services, published v1 specs (from tests/fixtures)
+// and consumer registrations. Idempotent - a second run creates nothing.
 // Run with: npm run seed
 
 import { readFileSync } from "node:fs"
 import { join } from "node:path"
 import { fileURLToPath, pathToFileURL } from "node:url"
 import type { AppDatabase } from "../src/db/types.js"
+import { hashPassword } from "../src/modules/auth/password.js"
+import { insertUser, userExists } from "../src/modules/auth/repository.js"
 import { consumerExists, insertConsumer } from "../src/modules/consumers/repository.js"
 import { publishVersion } from "../src/modules/publish/service.js"
 import { findServiceByName, insertService } from "../src/modules/services/repository.js"
@@ -63,18 +65,47 @@ const CONSUMER_REGISTRATIONS = [
 ]
 
 export interface SeedSummary {
+  usersCreated: number
   servicesCreated: number
   versionsUploaded: number
   consumersRegistered: number
 }
 
+const DEMO_USERS = [
+  { username: "admin", role: "admin" as const, team: "platform" },
+  { username: "quote-dev", role: "member" as const, team: "quote-team" },
+  { username: "claims-dev", role: "member" as const, team: "claims-team" },
+]
+
+export interface SeedOptions {
+  /** Password for the demo users. Comes from DEMO_PASSWORD via the CLI. */
+  demoPassword: string
+}
+
 /**
- * Ensure every service exists with a published 1.0.0 spec and every
- * consumer registration exists. Existing rows are left untouched.
+ * Ensure the demo users, every service with a published 1.0.0 spec, and every
+ * consumer registration exist. Existing rows are left untouched.
  */
-export async function seed(db: AppDatabase): Promise<SeedSummary> {
-  const summary: SeedSummary = { servicesCreated: 0, versionsUploaded: 0, consumersRegistered: 0 }
+export async function seed(db: AppDatabase, { demoPassword }: SeedOptions): Promise<SeedSummary> {
+  const summary: SeedSummary = {
+    usersCreated: 0,
+    servicesCreated: 0,
+    versionsUploaded: 0,
+    consumersRegistered: 0,
+  }
   const fixturesDir = fileURLToPath(new URL("../tests/fixtures", import.meta.url))
+
+  for (const user of DEMO_USERS) {
+    if (!(await userExists(db, user.username))) {
+      await insertUser(db, {
+        username: user.username,
+        passwordHash: await hashPassword(demoPassword),
+        role: user.role,
+        team: user.team,
+      })
+      summary.usersCreated += 1
+    }
+  }
 
   for (const definition of SERVICES) {
     let service = await findServiceByName(db, definition.name)
@@ -129,10 +160,17 @@ async function main(): Promise<void> {
   } catch {
     // No .env file - rely on the process environment.
   }
+  const demoPassword = process.env.DEMO_PASSWORD
+  if (!demoPassword) {
+    console.error("DEMO_PASSWORD is not set - copy .env.example to .env first.")
+    process.exitCode = 1
+    return
+  }
   const { db } = await import("../src/db/client.js")
-  const summary = await seed(db)
+  const summary = await seed(db, { demoPassword })
 
   if (
+    summary.usersCreated === 0 &&
     summary.servicesCreated === 0 &&
     summary.versionsUploaded === 0 &&
     summary.consumersRegistered === 0
@@ -141,7 +179,7 @@ async function main(): Promise<void> {
     return
   }
   console.log(
-    `Seeded: ${summary.servicesCreated} services, ${summary.versionsUploaded} spec versions published, ${summary.consumersRegistered} consumer registrations.`,
+    `Seeded: ${summary.usersCreated} users, ${summary.servicesCreated} services, ${summary.versionsUploaded} spec versions published, ${summary.consumersRegistered} consumer registrations.`,
   )
 }
 

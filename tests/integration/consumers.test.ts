@@ -160,14 +160,24 @@ describe("seed", () => {
     const db = getDb()
     const app = createApp({ db })
 
-    const first = await seed(db)
-    expect(first).toEqual({ servicesCreated: 3, versionsUploaded: 3, consumersRegistered: 5 })
+    const first = await seed(db, { demoPassword: "seed-password" })
+    expect(first).toEqual({
+      usersCreated: 3,
+      servicesCreated: 3,
+      versionsUploaded: 3,
+      consumersRegistered: 5,
+    })
 
     const servicesAfterFirst = await request(app).get("/api/services")
     const consumersAfterFirst = await request(app).get("/api/consumers")
 
-    const second = await seed(db)
-    expect(second).toEqual({ servicesCreated: 0, versionsUploaded: 0, consumersRegistered: 0 })
+    const second = await seed(db, { demoPassword: "seed-password" })
+    expect(second).toEqual({
+      usersCreated: 0,
+      servicesCreated: 0,
+      versionsUploaded: 0,
+      consumersRegistered: 0,
+    })
 
     const servicesAfterSecond = await request(app).get("/api/services")
     const consumersAfterSecond = await request(app).get("/api/consumers")

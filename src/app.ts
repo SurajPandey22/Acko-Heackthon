@@ -1,5 +1,6 @@
 import express, { type Express, type NextFunction, type Request, type Response } from "express"
 import type { AppDatabase } from "./db/types.js"
+import { consumersRouter } from "./modules/consumers/routes.js"
 import { HttpError } from "./modules/errors.js"
 import { servicesRouter } from "./modules/services/routes.js"
 import { specsRouter } from "./modules/specs/routes.js"
@@ -58,6 +59,7 @@ export function createApp({ db }: CreateAppOptions): Express {
 
   app.use("/api/services", servicesRouter(db))
   app.use("/api/services", specsRouter(db))
+  app.use("/api/consumers", consumersRouter(db))
 
   app.use(notFoundHandler)
   app.use(errorHandler)

@@ -59,3 +59,8 @@ export async function listSpecVersions(
     .where(eq(specVersions.serviceId, serviceId))
     .orderBy(specVersions.id)
 }
+
+/** Mark a stored version published. Used by the seed; the publish gate module will replace this. */
+export async function markSpecVersionPublished(db: AppDatabase, id: number): Promise<void> {
+  await db.update(specVersions).set({ status: "published" }).where(eq(specVersions.id, id))
+}

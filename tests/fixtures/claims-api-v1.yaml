@@ -1,0 +1,65 @@
+openapi: 3.0.3
+info:
+  title: Claims API
+  version: 1.0.0
+  description: Registers and tracks claims.
+paths:
+  /claims:
+    post:
+      summary: Register a claim
+      operationId: createClaim
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ClaimInput"
+      responses:
+        "201":
+          description: The created claim
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Claim"
+  /claims/{claimId}:
+    get:
+      summary: Get a claim by id
+      operationId: getClaim
+      parameters:
+        - name: claimId
+          in: path
+          required: true
+          description: The claim identifier.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: The claim
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Claim"
+        "404":
+          description: Unknown claim
+components:
+  schemas:
+    ClaimInput:
+      type: object
+      required: [policyId, incidentDate, description]
+      properties:
+        policyId:
+          type: string
+        incidentDate:
+          type: string
+          format: date
+        description:
+          type: string
+    Claim:
+      type: object
+      required: [claimId, status]
+      properties:
+        claimId:
+          type: string
+        status:
+          type: string
+          enum: [open, approved, rejected]

@@ -1,0 +1,67 @@
+openapi: 3.0.3
+info:
+  title: Policy API
+  version: 1.0.0
+  description: Manages insurance policies.
+paths:
+  /policy/{policyId}:
+    get:
+      summary: Get a policy by id
+      operationId: getPolicy
+      parameters:
+        - name: policyId
+          in: path
+          required: true
+          description: The policy identifier.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: The policy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Policy"
+        "404":
+          description: Unknown policy
+  /policy:
+    post:
+      summary: Create a policy
+      operationId: createPolicy
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PolicyInput"
+      responses:
+        "201":
+          description: The created policy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Policy"
+components:
+  schemas:
+    PolicyInput:
+      type: object
+      required: [customerId, productLine, premium]
+      properties:
+        customerId:
+          type: string
+        productLine:
+          type: string
+          enum: [motor, health, travel]
+        premium:
+          type: number
+    Policy:
+      type: object
+      required: [policyId, status, premium]
+      properties:
+        policyId:
+          type: string
+        status:
+          type: string
+          enum: [active, lapsed]
+        premium:
+          type: number

@@ -18,7 +18,7 @@
     "test:acceptance": "vitest run tests/acceptance",
     "lint": "biome check .",
     "db:generate": "drizzle-kit generate",
-    "seed": "tsx src/db/seed.ts"
+    "seed": "tsx scripts/seed.ts"
   },
   "dependencies": {
     "@apidevtools/swagger-parser": "^13.1.0",
